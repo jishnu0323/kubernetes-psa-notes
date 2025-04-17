@@ -1,0 +1,41 @@
+# --- ✅ Manually created Pod with label app: myapp ---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+spec:
+  containers:
+    - name: webappcontainer          # ✅ Must match RS template exactly
+      image: nginx
+      ports:
+        - containerPort: 80
+
+---
+
+# --- ✅ ReplicaSet that creates pod(s) with label app: dempapp,
+#         and adopts myapp-pod if it matches the template ---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: rs-webapp
+spec:
+  replicas: 2
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - dempapp
+          - myapp
+  template:
+    metadata:
+      labels:
+        app: dempapp
+    spec:
+      containers:
+        - name: webappcontainer      # ✅ Must match the manual pod exactly
+          image: nginx
+          ports:
+            - containerPort: 80
