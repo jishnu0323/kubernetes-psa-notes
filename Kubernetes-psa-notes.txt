@@ -741,6 +741,310 @@ kubectl scale rc dempapp --replicas=1  Explain in short
 
 ##############################################
 
+✅ ReplicaSet in Kubernetes
+===================
+🔹 What is a ReplicaSet?
+A ReplicaSet (RS) is a Kubernetes resource that ensures a specified number of identical Pods are running at any given time.
+
+💡 Key Features:
+Self-healing: If a Pod crashes or is manually deleted, the RS will automatically create a new Pod to maintain the desired number.
+
+Scaling: You can increase or decrease the number of replicas (Pods) easily.
+
+Selector-based matching: RS manages only those Pods that match its label selector.
+
+Example: 
+
+# -------- Manually created Pod with label app: myapp --------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod
+  labels:
+    app: myapp
+spec:
+  containers:
+    - name: myappcontainer
+      image: nginx
+      ports:
+        - containerPort: 80
+
+---
+# -------- Manually created Pod with label app: dempapp --------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dempapp-pod
+  labels:
+    app: dempapp
+spec:
+  containers:
+    - name: dempappcontainer
+      image: nginx
+      ports:
+        - containerPort: 80
+
+---
+# -------- ReplicaSet that manages both app: dempapp and app: myapp --------
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: rs-webapp
+spec:
+  replicas: 2
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - dempapp
+          - myapp
+  template:
+    metadata:
+      labels:
+        app: dempapp   # Pods created by RS will have this label
+    spec:
+      containers:
+        - name: webappcontainer
+          image: nginx
+          ports:
+            - containerPort: 80
+-----------------------------------------------------------------------------------------------------
+
+
+replica-set.yml for practicals
+------------------
+
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: webapp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dempapp         # Must match pod template labels
+  template:
+    metadata:
+      labels:
+        app: dempapp
+    spec:
+      containers:
+        - name: webappcontainer
+          image: psait/pankajsiracademy:latest
+          ports:
+            - containerPort: 9090
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webappservice
+spec:
+  type: NodePort
+  selector:
+    app: dempapp           # Must match pod labels
+  ports:
+    - port: 80
+      targetPort: 9090
+      nodePort: 30095
+######################################
+✅ Deployment in Kubernetes
+######################################
+
+Feature	               ReplicaSet	                  Deployment
+Manages Pods	             ✅ Yes	                    ✅ Yes (via ReplicaSet)
+Rolling Updates	           ❌ No	                    ✅ Yes
+Rollbacks	                 ❌ No	                    ✅ Yes
+YAML Kind	                 ReplicaSet	                Deployment
+Use in Real World	         Rare	                      Very Common
+
+A Deployment in Kubernetes is one of the most recommended and used resources for managing Pod lifecycles. It ensures reliable application deployment with features like zero downtime, auto-scaling, rolling updates, and rollback capabilities.
+
+🎯 Key Advantages of Using Deployments
+Zero Downtime: Deployments ensure high availability by using strategies like rolling updates. Even when pods are being updated, the service remains available to users.
+
+Auto Scaling: With Kubernetes Horizontal Pod Autoscaler, you can automatically scale your Pods based on CPU or memory usage (or other custom metrics).
+
+Rolling Update & Rollback: Kubernetes allows rolling updates, which means it will gradually update Pods one by one, ensuring the application remains available throughout the process. If something goes wrong during the update, you can rollback to a previous stable version.
+
+👨‍💻 When to Choose Which Strategy?
+Use RollingUpdate:
+
+For most production workloads where high availability and zero downtime are required.
+
+When you are gradually releasing new versions of your application and want to avoid service disruption.
+
+Use Recreate:
+
+For non-critical applications or during maintenance windows where it's okay to have a temporary outage.
+
+When you need to clear everything and redeploy fresh Pods (e.g., clearing persistent state or major upgrades).
+
+############################
+deployment-service.yml
+#########################
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dempapp         # Must match pod template labels
+  template:
+    metadata:
+      labels:
+        app: dempapp
+    spec:
+      containers:
+        - name: webappcontainer
+          image: psait/pankajsiracademy:latest
+          ports:
+            - containerPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webappservice
+spec:
+  type: NodePort
+  selector:
+    app: dempapp           # Must match pod labels
+  ports:
+    - port: 80
+      targetPort: 9090
+      nodePort: 30095
+
+#################################################################################################################
+
+🔧 1. Deployment
+
+apiVersion: apps/v1
+Uses the apps/v1 API to define a Deployment.
+
+
+kind: Deployment
+Declares that this is a Deployment (used to manage pods).
+
+
+metadata:
+  name: webapp
+Assigns the Deployment a name: webapp.
+
+
+spec:
+  replicas: 3
+Tells Kubernetes to run 3 replicas (3 pods) of your app.
+
+  selector:
+    matchLabels:
+      app: dempapp
+The deployment will manage pods that have the label app: dempapp.
+
+
+  template:
+    metadata:
+      labels:
+        app: dempapp
+This is the pod template. Every pod created will be labeled app: dempapp.
+
+This must match the selector above.
+
+    spec:
+      containers:
+        - name: webappcontainer
+          image: psait/pankajsiracademy:latest
+          ports:
+            - containerPort: 9090
+
+This is the container spec inside the pod:
+
+name: webappcontainer
+
+image: Docker image hosted at Docker Hub (psait/pankajsiracademy:latest)
+
+containerPort: The app runs on port 9090 inside the container.
+
+🌐 2. Service
+
+apiVersion: v1
+Uses the core v1 API to define a Service.
+
+
+kind: Service
+Declares a Service (used to expose pods).
+
+
+metadata:
+  name: webappservice
+The service name is webappservice.
+
+
+spec:
+  type: NodePort
+NodePort type: Exposes your app externally by opening a port on every node in the cluster.
+
+Clients can access it via:
+http://<NodeIP>:30095
+
+
+  selector:
+    app: dempapp
+The service targets pods with label app: dempapp — which matches the Deployment.
+
+
+  ports:
+    - port: 80
+      targetPort: 9090
+      nodePort: 30095
+port: 80: The port the service receives traffic on (internally).
+
+targetPort: 9090: Forwards traffic to container's port 9090.
+
+nodePort: 30095: Opens this port on the Kubernetes node — used to access the service from outside the cluster.
+
+
+################################
+Deployment with load balancer
+###############################
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dempapp         # Must match pod template labels
+  template:
+    metadata:
+      labels:
+        app: dempapp
+    spec:
+      containers:
+        - name: webappcontainer
+          image: psait/pankajsiracademy:latest
+          ports:
+            - containerPort: 9090
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webappservice
+spec:
+  type: LoadBalancer     # ✅ Changed from NodePort to LoadBalancer
+  selector:
+    app: dempapp
+  ports:
+    - port: 80
+      targetPort: 9090
 
 
 ----------------------------------------------------------Further notes will be added soon-----------------------------------------------------
