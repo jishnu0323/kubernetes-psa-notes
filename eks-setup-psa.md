@@ -50,9 +50,20 @@ eksctl create cluster --name psait-cluster4 --region us-east-1 --node-type t2.me
 `
 eksctl create cluster --name psait-cluster4 --region ap-south-1 --node-type t2.medium  --zones ap-south-1a,ap-south-1b
 `
+- - -
+**NOTE:** 👉 What Happens Behind the Scenes:
+Control Plane is automatically provisioned and managed by AWS (you don’t create or pay for EC2 instances for it directly).
 
+AWS EKS offers a fully managed control plane for every EKS cluster you create.
+
+It runs on AWS’s infrastructure, not in your account — you don’t see it as EC2 instances.
+
+You only pay for the control plane separately (around ~$0.10/hour per cluster).
+
+Worker Nodes (EC2 Instances) are provisioned in your AWS account based on your flags like --node-type, --nodes-min, etc.
 ## After cluster created we can check nodes using below command.
 
+- - -
 `
  kubectl get nodes  
 `
