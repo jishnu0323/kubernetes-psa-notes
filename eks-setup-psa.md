@@ -61,7 +61,6 @@ It runs on AWS’s infrastructure, not in your account — you don’t see it as
 You only pay for the control plane separately (around ~$0.10/hour per cluster).
 
 Worker Nodes (EC2 Instances) are provisioned in your AWS account based on your flags like --node-type, --nodes-min, etc.
-## After cluster created we can check nodes using below command.
 
 So in short:
 ✅ Yes, a cluster = control plane + worker nodes
@@ -69,6 +68,8 @@ So in short:
 🧾 You only define and manage the worker nodes (unless you go serverless using Fargate)
 
 - - -
+
+## After cluster created we can check nodes using below command.
 `
  kubectl get nodes  
 `
