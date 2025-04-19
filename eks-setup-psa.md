@@ -63,6 +63,11 @@ You only pay for the control plane separately (around ~$0.10/hour per cluster).
 Worker Nodes (EC2 Instances) are provisioned in your AWS account based on your flags like --node-type, --nodes-min, etc.
 ## After cluster created we can check nodes using below command.
 
+So in short:
+✅ Yes, a cluster = control plane + worker nodes
+🛠️ But when using eksctl, AWS automatically sets up the control plane
+🧾 You only define and manage the worker nodes (unless you go serverless using Fargate)
+
 - - -
 `
  kubectl get nodes  
